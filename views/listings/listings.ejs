@@ -1,0 +1,78 @@
+<%- layout("layouts/boilerplate.ejs") %>
+
+    <div class="container mt-4">
+        <h2 class="mb-4">Available Products</h2>
+        <div class="mb-4">
+            <a href="/products" class="btn btn-outline-dark btn-sm">All</a>
+            <a href="/products/category/1" class="btn btn-outline-dark btn-sm">Clothes</a>
+            <a href="/products/category/2" class="btn btn-outline-dark btn-sm">Electronics</a>
+            <a href="/products/category/3" class="btn btn-outline-dark btn-sm">Decoration</a>
+        </div>
+        <div class="row">
+            <% for (let product of products) { %>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <% if (product.image_url) { %>
+                            <img src="<%= product.image_url %>" class="card-img-top p-2"
+                                style="height: 200px; object-fit: contain; background: #f8f9fa;">
+                            <% } %>
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <%= product.StockCode %>
+                                    </h5>
+                                    <p class="card-text">
+                                        <%= product.Description %>
+                                    </p>
+                                    <p class="fw-bold">₹ <%= product.Unit_Price %>
+                                    </p>
+                                    <p class="mb-1">
+                                        <% if (product.Quantity> 0) { %>
+                                            <span class="text-success">
+                                                In stock: <%= product.Quantity %>
+                                            </span>
+                                            <% } else { %>
+                                                <span class="text-danger">
+                                                    Out of stock
+                                                </span>
+                                                <% } %>
+                                    </p>
+
+                                    <span class="badge bg-secondary">
+                                        <%= product.Category %>
+                                    </span>
+
+                                    <% if (product.Unit_Price < 1000) { %>
+                                        <span class="badge bg-warning ms-2">Low Price</span>
+                                        <% } %>
+
+                                            <% if (currUser && currUser.role==="admin" ) { %>
+                                                <div class="mt-3 d-flex gap-2">
+                                                    <a href="/products/<%= product.ProductID %>/edit"
+                                                        class="btn btn-sm btn-warning">Edit</a>
+
+                                                    <form action="/products/<%= product.ProductID %>?_method=DELETE"
+                                                        method="POST">
+                                                        <button class="btn btn-sm btn-danger"
+                                                            onclick="return confirm('Delete this product?')">
+                                                            Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                                <% } %>
+                                </div>
+                                <% if (product.Quantity> 0 && currUser && currUser.role === "user") { %>
+                                    <form action="/cart/add/<%= product.ProductID %>" method="POST">
+                                        <button class="btn btn-warning btn-sm">
+                                            <i class="fa fa-cart-plus"></i> Add to Cart
+                                        </button>
+                                    </form>
+                                    <% } else if (product.Quantity===0) { %>
+                                        <button class="btn btn-secondary btn-sm" disabled>
+                                            Out of stock
+                                        </button>
+                                        <% } %>
+                    </div>
+                </div>
+                <% } %>
+        </div>
+    </div>

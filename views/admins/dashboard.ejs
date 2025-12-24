@@ -1,0 +1,30 @@
+<%- layout("layouts/boilerplate") %>
+
+<div class="text-center mt-5">
+    <h2 style="color: aliceblue;">Admin Dashboard</h2>
+    <p style="color: aliceblue;">Only admins can access this page.</p>
+</div>
+
+<a href="/products/new" class="btn btn-primary mt-3">
+    Add New Product
+</a>
+
+<div class="container mt-4">
+    <h2>Admin Dashboard</h2>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow p-3">
+                <h4>Total Products</h4>
+                <h2><%= productCount %></h2>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow p-3">
+                <h4>Total Categories</h4>
+                <h2><%= categoryCount %></h2>
+            </div>
+        </div>
+    </div>
+</div>

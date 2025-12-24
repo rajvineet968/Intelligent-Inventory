@@ -1,0 +1,400 @@
+/* Slide down header */
+.animate-slide {
+    animation: slideDown 0.6s ease-out both;
+}
+
+/* Fade in items */
+.animate-fade {
+    animation: fadeIn 0.8s ease-out both;
+}
+
+/* Delays */
+.animate-logo { animation-delay: 0.2s; }
+.animate-title { animation-delay: 0.4s; }
+
+/* Hover (merge transforms) */
+.animate-logo:hover {
+    transform: translateY(0) scale(1.1) rotate(5deg);
+    transition: transform 0.3s ease;
+}
+
+.animate-title:hover {
+    transform: translateY(0) scale(1.03);
+    transition: all 0.3s ease;
+}
+
+/* Keyframes (GLOBAL ONLY) */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Mobile tweak */
+@media (max-width: 768px) {
+    .animate-slide {
+        animation-duration: 0.4s;
+    }
+}
+
+
+/* Footer */
+.footer-wrapper {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 97%;
+    z-index: 1050;
+}
+/* Footer animation ONLY */
+.animate-footer {
+    animation: slideUp 0.6s ease-in-out;
+}
+
+/* Hover (SAFE NOW) */
+.animate-footer:hover {
+    transform: translateY(-4px);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+/* Keyframes */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* ===================== */
+/* Card hover animation */
+/* ===================== */
+
+.animate-card {
+    opacity: 1;
+    transition: 
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+/* When user touches / hovers the card */
+.animate-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Optional: active state for mobile tap */
+.animate-card:active {
+    transform: translateY(-3px) scale(0.98);
+}
+
+
+
+/* Full screen background image */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Background image layer */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url('/images/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    filter: blur(8px);   /* ✅ THIS blurs the image */
+    transform: scale(1.1); /* avoids edge cut after blur */
+
+    z-index: -2;
+}
+
+/* Dark overlay */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: -1;
+}
+
+header,
+footer,
+.container {
+    position: relative;
+    z-index: 1;
+}
+
+
+/* ============================= */
+/* Auth page between header/footer */
+/* ============================= */
+
+.auth-page {
+    flex: 1;
+    display: flex;
+    align-items: center;       /* center vertically */
+    padding: 10px 12px 44px;   /* minimal safe */
+    box-sizing: border-box;
+}
+
+.auth-page .row {
+    display: flex;
+    flex-direction: row;   /* FORCE horizontal layout */
+    align-items: flex-start;
+    justify-content: center;
+    gap: 12px;             /* space between panels */
+    width: 100%;
+    margin-top: -20px;
+}
+
+
+/* Panels */
+.admin-panel {
+    background: #1f252a98;
+    border-radius: 50px 50px 50px 50px;
+}
+
+.user-panel {
+    background: #ffffffa2;
+    border-radius: 50px 50px 50px 50px;
+}
+
+/* Card */
+.auth-card {
+    width: 80%;
+    max-width: 420px;
+    padding: 20px;
+}
+
+.admin-panel,
+.user-panel {
+    flex: 0 0 48%;
+    max-width: 48%;
+    min-height: 540px;   /* fills vertical space nicely */
+    display: flex;
+    align-items: center;
+}
+
+.auth-card input {
+    border-radius: 30px;
+    padding: 12px 16px;
+}
+.auth-card button {
+    border-radius: 30px;
+    padding: 12px;
+    font-weight: 600;
+}
+.auth-card {
+    border-radius: 20px;
+    padding: 25px;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.auth-card .form-control {
+    margin-bottom: 12px;  /* ↓ tighter vertical rhythm */
+}
+.auth-card h3 {
+    margin-bottom: 16px;  /* ↓ less gap above inputs */
+}
+.auth-card button {
+    padding: 10px;
+}
+
+.icon-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+.icon-circle i {
+    font-size: 36px;   /* BIG icon */
+}
+.admin-icon {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+.admin-icon:hover {
+    background: #dc3545;   /* red hover */
+    transform: scale(1.08);
+}
+.user-icon {
+    background: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+}
+
+.user-icon:hover {
+    background: #0d6efd;
+    color: #ffffff;
+    transform: scale(1.08);
+}
+
+@media (max-width: 991px) {
+
+    /* Stack panels but keep width decent */
+    .auth-page .row {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .admin-panel,
+    .user-panel {
+        max-width: 90%;
+        flex: 0 0 90%;
+        border-radius: 24px;
+    }
+
+    /* Reduce vertical padding */
+    .auth-page {
+        padding: 8px 12px 44px;
+    }
+
+    /* Icon size slightly smaller */
+    .icon-circle {
+        width: 80px;
+        height: 80px;
+    }
+
+    .icon-circle i {
+        font-size: 32px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+
+    /* Panels full width */
+    .admin-panel,
+    .user-panel {
+        max-width: 100%;
+        flex: 1;
+        border-radius: 20px;
+    }
+
+    /* Tighten spacing */
+    .auth-page {
+        padding: 6px 10px 40px;
+    }
+
+    .auth-page .row {
+        gap: 16px;
+    }
+
+    /* Smaller headings */
+    .auth-card h3 {
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+
+    /* Icons smaller */
+    .icon-circle {
+        width: 70px;
+        height: 70px;
+    }
+
+    .icon-circle i {
+        font-size: 28px;
+    }
+}
+@media (max-width: 480px) {
+
+    /* Ultra-tight layout */
+    .auth-page {
+        padding: 4px 8px 36px;
+    }
+
+    .auth-card {
+        padding: 16px;
+    }
+
+    /* Icons compact */
+    .icon-circle {
+        width: 60px;
+        height: 60px;
+    }
+
+    .icon-circle i {
+        font-size: 24px;
+    }
+
+    /* Text scale */
+    .auth-card h3 {
+        font-size: 18px;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+html {
+    overflow-x: hidden;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow-y: auto;
+}
+

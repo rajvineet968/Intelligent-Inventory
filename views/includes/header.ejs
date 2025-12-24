@@ -1,0 +1,83 @@
+<header class="container-fluid mt-3 animate-slide">
+    <div class="d-flex align-items-center justify-content-between 
+                px-4 py-3 rounded shadow text-white"
+        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+
+        <!-- Logo -->
+        <div class="d-flex align-items-center">
+            <img src="/logo/RVCE-2024-Logo.png" alt="RV College Logo" class="img-fluid animate-fade animate-logo"
+                style="height: 80px;">
+        </div>
+
+        <!-- Title -->
+        <div class="flex-grow-1 text-center">
+            <h2 class="m-0 fw-semibold animate-fade animate-title">
+                Intelligent Inventory Management System using Data driven Forecasting
+            </h2>
+        </div>
+
+        <!-- RIGHT SIDE : AUTH CONTROLS -->
+        <div class="d-flex align-items-center gap-3">
+            <!-- Home Icon -->
+            <a href="/" class="text-white fs-4" title="Home" style="
+     transition: transform 0.25s ease,
+                 background-color 0.25s ease,
+                 box-shadow 0.25s ease;
+     padding: 8px;
+     border-radius: 50%;
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+   " onmouseover="
+     this.style.transform='translateY(-3px) scale(1.1)';
+     this.style.backgroundColor='rgba(255,255,255,0.25)';
+     this.style.boxShadow='0 6px 15px rgba(0,0,0,0.3)';
+   " onmouseout="
+     this.style.transform='scale(1)';
+     this.style.backgroundColor='transparent';
+     this.style.boxShadow='none';
+   ">
+                <i class="fa-solid fa-house"></i>
+            </a>
+
+
+            <% if (currUser) { %>
+                <!-- Logged in -->
+                <span class="fw-semibold me-2">
+                    <i class="fa-solid fa-user"></i>
+                    <%= currUser.ID %>
+                </span>
+
+                <% if (currUser.role==="admin" ) { %>
+                    <a href="/admin/dashboard" class="btn btn-warning btn-sm fw-semibold">
+                        Admin
+                    </a>
+                    <% } %>
+                        <% if (currUser && currUser.role==="user" ) { %>
+                            <a href="/cart" class="btn btn-light btn-sm ms-3 position-relative">
+                                <i class="fa fa-shopping-cart"></i> My Cart
+                                <% if (cartCount> 0) { %>
+                                    <span
+                                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        <%= cartCount %>
+                                    </span>
+                                    <% } %>
+                            </a>
+                            <% } %>
+
+                                <a href="/logout" class="btn btn-danger btn-sm fw-semibold">
+                                    Logout
+                                </a>
+                                <% } else { %>
+                                    <!-- Not logged in: show Signup & Login -->
+                                    <a href="/signup" class="btn btn-success btn-sm fw-semibold me-2">
+                                        <i class="fa-solid fa-user-plus"></i> Sign Up
+                                    </a>
+                                    <a href="/login" class="btn btn-primary btn-sm fw-semibold">
+                                        <i class="fa-solid fa-right-to-bracket"></i> Login
+                                    </a>
+                                    <% } %>
+
+        </div>
+    </div>
+</header>

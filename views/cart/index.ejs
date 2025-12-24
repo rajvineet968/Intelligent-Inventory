@@ -1,0 +1,37 @@
+<%- layout("layouts/boilerplate.ejs") %>
+
+<div class="container mt-4">
+    <h2>My Cart</h2>
+
+    <% if (items.length === 0) { %>
+        <p>Your cart is empty.</p>
+    <% } else { %>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% items.forEach(item => { %>
+                    <tr>
+                        <td>
+                            <img src="<%= item.image_url %>" width="60">
+                            <%= item.StockCode %>
+                        </td>
+                        <td>₹ <%= Number(item.Unit_Price).toFixed(2) %></td>
+                        <td><%= item.quantity %></td>
+                        <td>₹ <%= Number(item.item_total).toFixed(2) %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+
+        <h4>Total: ₹ <%= Number(total).toFixed(2) %></h4>
+
+    <% } %>
+</div>

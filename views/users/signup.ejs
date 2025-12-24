@@ -1,0 +1,161 @@
+<%- layout("layouts/boilerplate.ejs") %>
+
+<style>
+/* ---------- PAGE BASE ---------- */
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ---------- BACKGROUND ---------- */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url('/images/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    filter: blur(8px);
+    transform: scale(1.1);
+    z-index: -2;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: -1;
+}
+
+header, footer {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* ---------- AUTH PAGE ---------- */
+.auth-page {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ---------- CARD ---------- */
+.auth-card {
+    width: 100%;
+    max-width: 460px;
+    padding: 28px;
+    border-radius: 22px;
+
+    background: rgba(20, 20, 30, 0.272);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    border: 1px solid rgba(255,255,255,0.25);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.55);
+    color: #fff;
+}
+
+/* ---------- FORM ---------- */
+.auth-card .form-control {
+    width: 340px !important;
+    font-size: 16px !important;
+    padding: 14px 22px !important;
+    border-radius: 30px !important;
+
+    background: rgba(255, 255, 255, 0.35) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    color: #fff !important;
+}
+
+.auth-card .form-control:focus {
+    background: rgba(255,255,255,0.45);
+    border-color: rgba(255,255,255,0.7);
+    box-shadow: none;
+}
+
+.auth-card .form-label {
+    color: #eaeaea;
+}
+
+/* ---------- BUTTON ---------- */
+.auth-card .btn-success {
+    width: 100%;
+    border-radius: 30px;
+    padding: 12px;
+    font-size: 16px;
+    margin-top: 10px;
+}
+</style>
+
+<div class="auth-page">
+    <div class="auth-card">
+        <h1 class="text-center mb-4">Sign Up</h1>
+
+        <form action="/signup" method="POST" class="needs-validation" novalidate>
+
+            <div class="mb-3">
+                <label class="form-label">ID</label>
+                <input name="ID" type="text" class="form-control" required>
+                <div class="invalid-feedback">Please enter ID.</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input name="email" type="email" class="form-control" required>
+                <div class="invalid-feedback">Please enter valid email in the format user@example.com.</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input name="password" id="password" type="password" class="form-control" required minlength="6">
+                <div class="invalid-feedback">Please enter password (at least 6 characters).</div>
+            </div>
+
+            <button class="btn btn-success">Sign Up</button>
+        </form>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    // Bootstrap-style custom validation with extra password length check
+    var forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        var password = form.querySelector('#password');
+
+        if (password) {
+            // live feedback for password length
+            password.addEventListener('input', function () {
+                if (password.value.length < 6) {
+                    password.setCustomValidity('Password must be at least 6 characters.');
+                } else {
+                    password.setCustomValidity('');
+                }
+            });
+        }
+
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+</script>
