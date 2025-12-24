@@ -1,0 +1,42 @@
+<%- layout("layouts/boilerplate.ejs") %>
+
+    <div class="container mt-4">
+        <h2>My Orders</h2>
+
+        <% if (orders.length===0) { %>
+            <p>You have no orders.</p>
+            <% } else { %>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% orders.forEach(order=> { %>
+                            <tr>
+                                <td>#<%= order.OrderID %>
+                                </td>
+                                <td>₹ <%= Number(order.total_amount).toFixed(2) %>
+                                </td>
+                                <td><span class="badge bg-success">
+                                        <%= order.Status %>
+                                    </span></td>
+                                <td>
+                                    <%= new Date(order.created_at).toLocaleString() %>
+                                </td>
+                                <td>
+                                    <a href="/orders/<%= order.OrderID %>" class="btn btn-sm btn-primary">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                </table>
+                <% } %>
+    </div>

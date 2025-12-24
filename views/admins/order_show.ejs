@@ -1,0 +1,53 @@
+<%- layout("layouts/boilerplate") %>
+
+    <div class="container mt-4">
+        <h3>Order #<%= order.OrderID %>
+        </h3>
+
+        <p><b>Status:</b>
+            <%= order.Status %>
+        </p>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Unit</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% items.forEach(i=> { %>
+                    <tr>
+                        <td>
+                            <%= i.StockCode %>
+                        </td>
+                        <td>
+                            <%= i.Quantity %>
+                        </td>
+                        <td>₹ <%= Number(i.Unit_Price).toFixed(2) %>
+                        </td>
+                        <td>₹ <%= Number(i.total).toFixed(2) %>
+                        </td>
+                    </tr>
+                    <% }) %>
+            </tbody>
+        </table>
+
+        <h4>Total: ₹ <%= Number(order.total_amount).toFixed(2) %>
+        </h4>
+
+        <!-- STATUS UPDATE -->
+        <form method="POST" action="/admin/orders/<%= order.OrderID %>/status?_method=PUT">
+            <select name="status" class="form-select w-25">
+                <% ['PLACED','CONFIRMED','SHIPPED','DELIVERED','CANCELLED'].forEach(s=> { %>
+                    <option value="<%= s %>" <%=order.Status===s ? 'selected' : '' %>>
+                        <%= s %>
+                    </option>
+                    <% }) %>
+            </select>
+
+            <button class="btn btn-success mt-2">Update Status</button>
+        </form>
+    </div>

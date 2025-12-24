@@ -7,6 +7,9 @@ if (!process.env.SECRET) {
   console.warn("⚠️ WARNING: SESSION SECRET NOT SET");
 }
 
+// Requiring validation schemas
+const { validateProduct } = require("./utils/adminValidator");
+
 // Login security constants
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_TIME = 30 * 1000; // 30 seconds
@@ -25,9 +28,6 @@ const pool = require("./db/mysql");
 
 //Custom Error class
 const ExpressError = require("./utils/ExpressError");
-
-// Admin input validation
-// const { validateProduct } = require("./utils/adminValidator");
 
 //MongoDB connection
 mongoose
@@ -220,9 +220,13 @@ app.post(
   isLoggedIn,
   isAdmin,
   upload.single("image"),
-  // validateProduct,
   async (req, res, next) => {
     try {
+      const errors = validateProduct(req.body);
+      if (errors.length > 0) {
+        req.flash("error", errors.join(", "));
+        return res.redirect("/products/new");
+      }
       const { stockcode, description, unit_price, quantity, catid } = req.body;
 
       const imageUrl = req.file ? req.file.path : null;
@@ -298,16 +302,13 @@ app.put(
   isLoggedIn,
   isAdmin,
   upload.single("image"),
-  // validateProduct,
   async (req, res, next) => {
     try {
-      // const errors = validateProduct(req.body);
-
-      // if (errors.length > 0) {
-      //   req.flash("error", errors.join(", "));
-      //   return res.redirect(`/products/${req.params.id}/edit`);
-      // }
-
+      const errors = validateProduct(req.body);
+      if (errors.length > 0) {
+        req.flash("error", errors.join(", "));
+        return res.redirect(`/products/${req.params.id}/edit`);
+      }
       const { id } = req.params;
       const { stockcode, description, unit_price, quantity, catid } = req.body;
 
@@ -368,6 +369,81 @@ app.delete("/products/:id", isLoggedIn, isAdmin, async (req, res, next) => {
   }
 });
 
+// ADMIN – VIEW ALL ORDERS
+app.get("/admin/orders", isLoggedIn, isAdmin, async (req, res, next) => {
+  try {
+    const [orders] = await pool.query(`
+      SELECT 
+        OrderID,
+        UserID,
+        total_amount,
+        Status,
+        created_at
+      FROM orders
+      ORDER BY created_at DESC
+    `);
+
+    res.render("admins/orders.ejs", { orders });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ADMIN – VIEW VIEW SINGLE ORDER + ITEMS
+app.get("/admin/orders/:id", isLoggedIn, isAdmin, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const [[order]] = await pool.query(
+      "SELECT * FROM orders WHERE OrderID = ?",
+      [id]
+    );
+
+    const [items] = await pool.query(
+      `
+      SELECT 
+        p.StockCode,
+        p.Description,
+        oi.Quantity,
+        oi.Unit_Price,
+        (oi.Quantity * oi.Unit_Price) AS total
+      FROM order_items oi
+      JOIN product p ON oi.ProductID = p.ProductID
+      WHERE oi.OrderID = ?
+    `,
+      [id]
+    );
+
+    res.render("admins/order_show.ejs", { order, items });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ADMIN – UPDATE ORDER STATUS
+app.put(
+  "/admin/orders/:id/status",
+  isLoggedIn,
+  isAdmin,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      await pool.query("UPDATE orders SET Status = ? WHERE OrderID = ?", [
+        status,
+        id,
+      ]);
+
+      req.flash("success", "Order status updated");
+      res.redirect(`/admin/orders/${id}`);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+//  ---------------- AUTH ROUTES ----------------
 //SIGNUP ROUTES
 app.get("/signup", (req, res) => {
   res.render("users/signup.ejs");
@@ -453,7 +529,7 @@ app.post(
   "/cart/add/:productId",
   isLoggedIn,
   isUser,
-  // validateProduct,
+  // ,
   async (req, res, next) => {
     try {
       const userId = req.user._id.toString();
@@ -554,6 +630,162 @@ app.get("/cart", isLoggedIn, isUser, async (req, res, next) => {
   }
 });
 
+// ---------------- PLACE ORDER ----------------
+app.post("/orders/place", isLoggedIn, isUser, async (req, res, next) => {
+  const connection = await pool.getConnection();
+
+  try {
+    const userId = req.user._id.toString();
+    await connection.beginTransaction();
+
+    // 1️⃣ Get cart
+    const [[cart]] = await connection.query(
+      "SELECT CartID FROM cart WHERE UserID = ?",
+      [userId]
+    );
+
+    if (!cart) {
+      await connection.rollback();
+      req.flash("error", "Cart is empty");
+      return res.redirect("/cart");
+    }
+
+    // 2️⃣ Get cart items
+    const [items] = await connection.query(
+      `SELECT 
+         ci.ProductID,
+         ci.Quantity,
+         p.Unit_Price,
+         p.Quantity AS stock
+       FROM cart_items ci
+       JOIN product p ON ci.ProductID = p.ProductID
+       WHERE ci.CartID = ?`,
+      [cart.CartID]
+    );
+
+    if (items.length === 0) {
+      await connection.rollback();
+      req.flash("error", "Cart is empty");
+      return res.redirect("/cart");
+    }
+
+    // 3️⃣ Stock validation
+    for (let item of items) {
+      if (item.Quantity > item.stock) {
+        await connection.rollback();
+        req.flash("error", "Insufficient stock");
+        return res.redirect("/cart");
+      }
+    }
+
+    // 4️⃣ Total calculation
+    let total = 0;
+    items.forEach(i => {
+      total += i.Unit_Price * i.Quantity;
+    });
+
+    // 5️⃣ Create order
+    const [orderResult] = await connection.query(
+      "INSERT INTO orders (UserID, total_amount, Status) VALUES (?, ?, ?)",
+      [userId, total, "PLACED"]
+    );
+    const orderId = orderResult.insertId;
+
+    // 6️⃣ Insert order items + update stock (ONCE)
+    for (let item of items) {
+      await connection.query(
+        `INSERT INTO order_items 
+         (OrderID, ProductID, Quantity, Unit_Price)
+         VALUES (?, ?, ?, ?)`,
+        [orderId, item.ProductID, item.Quantity, item.Unit_Price]
+      );
+
+      await connection.query(
+        "UPDATE product SET Quantity = Quantity - ? WHERE ProductID = ?",
+        [item.Quantity, item.ProductID]
+      );
+    }
+
+    // 7️⃣ Clear cart
+    await connection.query(
+      "DELETE FROM cart_items WHERE CartID = ?",
+      [cart.CartID]
+    );
+    await connection.query(
+      "DELETE FROM cart WHERE CartID = ?",
+      [cart.CartID]
+    );
+
+    await connection.commit();
+    req.flash("success", "Order placed successfully");
+    res.redirect("/products");
+
+  } catch (err) {
+    await connection.rollback();
+    next(err);
+  } finally {
+    connection.release();
+  }
+});
+
+
+// ---------------- USER ORDERS ----------------
+app.get("/orders", isLoggedIn, isUser, async (req, res, next) => {
+  try {
+    const userId = req.user._id.toString();
+
+    const [orders] = await pool.query(
+      `SELECT OrderID, total_amount, Status, created_at
+       FROM orders
+       WHERE UserID = ?
+       ORDER BY created_at DESC`,
+      [userId]
+    );
+
+    res.render("orders/index.ejs", { orders });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------- ORDER DETAILS ----------------
+app.get("/orders/:id", isLoggedIn, isUser, async (req, res, next) => {
+  try {
+    const userId = req.user._id.toString();
+    const { id } = req.params;
+
+    // 🔒 Ensure user owns this order
+    const [[order]] = await pool.query(
+      "SELECT * FROM orders WHERE OrderID = ? AND UserID = ?",
+      [id, userId]
+    );
+
+    if (!order) {
+      req.flash("error", "Order not found");
+      return res.redirect("/orders");
+    }
+
+    const [items] = await pool.query(
+      `
+      SELECT 
+        p.StockCode,
+        p.Description,
+        oi.Quantity,
+        oi.Unit_Price,
+        (oi.Quantity * oi.Unit_Price) AS total
+      FROM order_items oi
+      JOIN product p ON oi.ProductID = p.ProductID
+      WHERE oi.OrderID = ?
+      `,
+      [id]
+    );
+
+    res.render("orders/show.ejs", { order, items });
+  } catch (err) {
+    next(err);
+  }
+});
+
 //LOGOUT ROUTE
 app.get("/logout", (req, res, next) => {
   req.logout(function (err) {
@@ -568,6 +800,7 @@ app.get("/logout", (req, res, next) => {
   });
 });
 
+// ---------------- PRODUCT LISTING BY CATEGORY ----------------
 app.get("/products/category/:id", async (req, res, next) => {
   try {
     const { id } = req.params;

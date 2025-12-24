@@ -78,6 +78,29 @@
                                     </a>
                                     <% } %>
 
+
+
+                                        <% if (currUser && currUser.role==="user" ) { %>
+                                            <!-- ORDERS ICON -->
+                                            <a href="/orders" class="text-white fs-4 me-3" title="My Orders"
+                                                style="transition: transform .2s;"
+                                                onmouseover="this.style.transform='scale(1.2)'"
+                                                onmouseout="this.style.transform='scale(1)'">
+                                                <i class="fa-solid fa-box"></i>
+                                            </a>
+
+
+                                            <% } %>
+                                                <% if (currUser && currUser.role==="admin" ) { %>
+
+                                                    <!-- ADMIN ORDERS -->
+                                                    <a href="/admin/orders" class="text-white fs-4 me-3"
+                                                        title="Manage Orders">
+                                                        <i class="fa-solid fa-list-check"></i>
+                                                    </a>
+
+                                                    <% } %>
+
         </div>
     </div>
 </header>

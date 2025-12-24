@@ -1,0 +1,41 @@
+<%- layout("layouts/boilerplate") %>
+
+    <div class="container mt-4">
+        <h2>All Orders</h2>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>User</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <% orders.forEach(o=> { %>
+                    <tr>
+                        <td>#<%= o.OrderID %>
+                        </td>
+                        <td>
+                            <%= o.UserID %>
+                        </td>
+                        <td>₹ <%= Number(o.total_amount).toFixed(2) %>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">
+                                <%= o.Status %>
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/admin/orders/<%= o.OrderID %>" class="btn btn-sm btn-primary">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    <% }) %>
+            </tbody>
+        </table>
+    </div>
