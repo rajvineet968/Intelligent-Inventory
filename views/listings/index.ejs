@@ -1,4 +1,56 @@
 <%-layout('layouts/boilerplate.ejs')%>
+<style>
+    /* ============================= */
+/* Floating Project Overview Card */
+/* ============================= */
+
+.animate-card {
+    animation: floatIdle 2.5s ease-in-out infinite;
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+/* Hover lift */
+.animate-card:hover {
+    transform: translateY(-14px) scale(1.02);
+    box-shadow: 
+        0 30px 70px rgba(0, 0, 0, 0.55),
+        0 0 40px rgba(102, 126, 234, 0.25);
+}
+
+/* Idle floating animation */
+@keyframes floatIdle {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-14px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+/* Button subtle lift */
+.animate-btn {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.animate-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);
+}
+.card-text {
+    text-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+
+@media (hover: none) {
+    .animate-card {
+        animation: none;
+    }
+}
+
+</style>
+
 <div class="container bg-container d-flex justify-content-center align-items-center"
      style="min-height: calc(100vh - 220px);">
 

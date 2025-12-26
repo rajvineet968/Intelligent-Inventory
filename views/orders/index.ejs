@@ -1,5 +1,114 @@
 <%- layout("layouts/boilerplate.ejs") %>
+    <style>
+        /* ============================= */
+        /* My Orders Page Styling */
+        /* ============================= */
 
+        /* Page heading */
+        .container h2 {
+            color: #ffffff;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 4px 14px rgba(0, 0, 0, 0.75);
+        }
+
+        /* Table base */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0 12px;
+        }
+
+        /* Table header */
+        .table thead {
+            background: #ffffff;
+        }
+
+        .table thead th {
+            color: #111827;
+            font-weight: 700;
+            border: none;
+            padding: 14px;
+        }
+
+        /* Rounded header corners */
+        .table thead th:first-child {
+            border-top-left-radius: 14px;
+        }
+
+        .table thead th:last-child {
+            border-top-right-radius: 14px;
+        }
+
+        /* Table rows as cards */
+        .table tbody tr {
+            background: #ffffff;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .table tbody tr:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        /* Rounded row corners */
+        .table tbody tr td:first-child {
+            border-top-left-radius: 14px;
+            border-bottom-left-radius: 14px;
+        }
+
+        .table tbody tr td:last-child {
+            border-top-right-radius: 14px;
+            border-bottom-right-radius: 14px;
+        }
+
+        /* Table cells */
+        .table td {
+            border: none;
+            padding: 14px;
+            vertical-align: middle;
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        /* Status badges */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        /* View button */
+        .btn-primary.btn-sm {
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary.btn-sm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Empty state text */
+        .container p {
+            color: #ffffff;
+            font-size: 1.05rem;
+            opacity: 0.9;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .table {
+                font-size: 0.9rem;
+            }
+
+            .table tbody tr:hover {
+                transform: none;
+            }
+        }
+    </style>
     <div class="container mt-4">
         <h2>My Orders</h2>
 

@@ -1,11 +1,232 @@
 <%- layout("layouts/boilerplate.ejs") %>
 
-    <div class="container mt-4">
-        <h2>My Cart</h2>
+
+    <style>
+        :root {
+            --bg: #0b1220;
+            --card: rgba(255, 255, 255, 0.06);
+            --accent: #22d3ee;
+            --accent-2: #38bdf8;
+            --danger: #fb7185;
+            --success: #22c55e;
+            --text: #f8fafc;
+            --muted: rgba(248, 250, 252, 0.6);
+            --glass: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Page base */
+        body,
+        .container,
+        .table {
+            color: var(--text);
+            background: transparent;
+        }
+
+        /* ---------- TITLE ---------- */
+        .animate-title {
+            font-weight: 800;
+            font-size: 2rem;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        /* ---------- TABLE ---------- */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0 12px;
+        }
+
+        /* FORCE visible table header */
+        .table thead {
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        /* Top-left corner */
+        .table thead tr th:first-child {
+            border-top-left-radius: 16px;
+        }
+
+        /* Top-right corner */
+        .table thead tr th:last-child {
+            border-top-right-radius: 16px;
+        }
+
+        .table thead th {
+            color: #111827 !important;
+            font-weight: 700;
+            border-bottom: 2px solid #cbd5f5;
+        }
+
+
+        .table td {
+            border: none;
+        }
+
+        /* Row as floating card */
+        .table .animate-card {
+            background: var(--card);
+            border-radius: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+
+        .table .animate-card:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65);
+        }
+
+        /* ---------- PRODUCT IMAGE ---------- */
+        .product-thumb {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            object-fit: contain;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .6);
+            transition: transform .25s ease;
+        }
+
+        .product-thumb:hover {
+            transform: scale(1.12);
+        }
+
+        /* ---------- TEXT VISIBILITY ---------- */
+        td,
+        th {
+            font-size: 1rem;
+        }
+
+        td strong {
+            color: #ffffff;
+        }
+
+        /* ---------- INPUTS ---------- */
+        /* FORCE quantity input visibility */
+        .table .form-control {
+            background: #ffffff !important;
+            color: #111827 !important;
+            border: 2px solid #22d3ee;
+            font-weight: 600;
+        }
+
+        /* Better focus */
+        .table .form-control:focus {
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.35);
+        }
+
+        .table .animate-card {
+            background: #ffffff;
+            color: #111827;
+        }
+
+
+        /* ---------- BUTTONS ---------- */
+        .btn {
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Primary CTA */
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border: none;
+            color: #052e16;
+            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.45);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 45px rgba(34, 197, 94, 0.65);
+        }
+
+        /* Update */
+        .btn-outline-success {
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .btn-outline-success:hover {
+            background: var(--accent);
+            color: #042f2e;
+        }
+
+        /* Remove */
+        .btn-outline-danger {
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .btn-outline-danger:hover {
+            background: var(--danger);
+            color: #450a0a;
+        }
+
+        /* ---------- TOTAL ---------- */
+        h4 {
+            font-weight: 700;
+            margin-top: 1.5rem;
+            color: #ffffff;
+        }
+
+        /* ---------- DELIVERY CARD ---------- */
+        .delivery-card {
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.08),
+                    rgba(255, 255, 255, 0.04));
+            border-radius: 16px;
+            padding: 22px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .delivery-card h5 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        /* Top rounded corners for FIRST row */
+        .table tbody tr:first-child td:first-child {
+            border-top-left-radius: 16px;
+        }
+
+        .table tbody tr:first-child td:last-child {
+            border-top-right-radius: 16px;
+        }
+
+        /* Bottom rounded corners for LAST row */
+        .table tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 16px;
+        }
+
+        .table tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 16px;
+        }
+
+        /* Ensure radius actually shows */
+        .table tbody tr td {
+            background-clip: padding-box;
+        }
+
+        /* ---------- MOBILE ---------- */
+        @media (hover: none) {
+
+            .animate-card:hover,
+            .btn:hover,
+            .product-thumb:hover {
+                transform: none;
+                box-shadow: none;
+            }
+        }
+    </style>
+
+    <div class="container mt-4 animate-fade animate-slide">
+        <h2 class="animate-title">My Cart</h2>
 
         <% if (items.length===0) { %>
             <p>Your cart is empty.</p>
-            <a href="/products" class="btn btn-primary">Shop Now</a>
+            <a href="/products" class="btn btn-primary btn-animated">Shop Now</a>
             <% } else { %>
 
                 <table class="table align-middle">
@@ -15,16 +236,16 @@
                             <th>Price</th>
                             <th style="width:160px;">Qty</th>
                             <th>Total</th>
-                            <th></th>
+                            <th>Remove</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         <% items.forEach(item=> { %>
-                            <tr>
+                            <tr class="animate-card">
                                 <!-- PRODUCT -->
                                 <td>
-                                    <img src="<%= item.image_url %>" width="60" class="me-2">
+                                    <img src="<%= item.image_url %>" class="me-2 product-thumb" alt="product">
                                     <%= item.StockCode %>
                                 </td>
 
@@ -37,14 +258,14 @@
                                 <td>
                                     <form action="/cart/item/<%= item.CartItemID %>?_method=PUT" method="POST"
                                         class="d-flex gap-2">
-
                                         <input type="number" name="quantity" value="<%= item.quantity %>" min="1"
-                                            class="form-control form-control-sm" style="width:80px">
+                                            class="form-control form-control-sm" style="width:80px" required>
 
                                         <button class="btn btn-sm btn-outline-success">
                                             Update
                                         </button>
                                     </form>
+
                                 </td>
 
                                 <!-- ITEM TOTAL -->
@@ -54,7 +275,8 @@
 
                                 <!-- REMOVE -->
                                 <td>
-                                    <form action="/cart/item/<%= item.CartItemID %>?_method=PUT" method="POST">
+                                    <form action="/cart/item/<%= item.CartItemID %>?_method=DELETE" method="POST"
+                                        class="mt-2">
                                         <button class="btn btn-sm btn-outline-danger">
                                             Remove
                                         </button>
@@ -65,11 +287,11 @@
                     </tbody>
                 </table>
 
-                <h4 class="mt-3">
+                <h4 class="mt-3 animate-fade">
                     Total: ₹ <%= Number(total).toFixed(2) %>
                 </h4>
 
-                <form action="/orders/place" method="POST">
+                <form action="/orders/place" method="POST" class="delivery-card mt-3">
                     <h5 class="mt-4">Delivery Address</h5>
 
                     <div class="mb-2">
@@ -92,7 +314,7 @@
                         </div>
                     </div>
 
-                    <button class="btn btn-success mt-3">
+                    <button class="btn btn-success mt-3 btn-animated">
                         Place Order
                     </button>
                 </form>

@@ -645,57 +645,20 @@ app.get("/cart", isLoggedIn, isUser, async (req, res, next) => {
   }
 });
 
-// UPDATE CART ITEM
+
+// ---------------- UPDATE CART ITEM QUANTITY ----------------
 app.put("/cart/item/:id", isLoggedIn, isUser, async (req, res, next) => {
   try {
-    const userId = req.user._id.toString();
     const { id } = req.params;
     let { quantity } = req.body;
 
-    quantity = Number(quantity);
+    quantity = parseInt(quantity, 10);
 
-    // ❌ invalid quantity
-    if (isNaN(quantity) || quantity < 0) {
-      req.flash("error", "Invalid quantity");
+    if (isNaN(quantity) || quantity < 1) {
+      req.flash("error", "Quantity must be at least 1");
       return res.redirect("/cart");
     }
 
-    // 🔎 get cart item + product
-    const [[item]] = await pool.query(
-      `
-      SELECT 
-        ci.CartID,
-        ci.ProductID,
-        p.Quantity AS total_stock,
-        IFNULL(p.Quantity - IFNULL(SUM(ci2.quantity),0), p.Quantity) AS available_stock
-      FROM cart_items ci
-      JOIN product p ON ci.ProductID = p.ProductID
-      LEFT JOIN cart_items ci2 ON p.ProductID = ci2.ProductID
-      WHERE ci.CartItemID = ?
-      GROUP BY p.ProductID
-    `,
-      [id]
-    );
-
-    if (!item) {
-      req.flash("error", "Cart item not found");
-      return res.redirect("/cart");
-    }
-
-    // ❌ exceeds stock
-    if (quantity > item.available_stock) {
-      req.flash("error", "Stock limit exceeded");
-      return res.redirect("/cart");
-    }
-
-    // 🧹 remove item
-    if (quantity === 0) {
-      await pool.query("DELETE FROM cart_items WHERE CartItemID = ?", [id]);
-      req.flash("success", "Item removed");
-      return res.redirect("/cart");
-    }
-
-    // 🔁 update quantity
     await pool.query(
       "UPDATE cart_items SET quantity = ? WHERE CartItemID = ?",
       [quantity, id]
@@ -707,6 +670,26 @@ app.put("/cart/item/:id", isLoggedIn, isUser, async (req, res, next) => {
     next(err);
   }
 });
+
+
+// REMOVE CART ITEM
+app.delete("/cart/item/:id", isLoggedIn, isUser, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    await pool.query(
+      "DELETE FROM cart_items WHERE CartItemID = ?",
+      [id]
+    );
+
+    req.flash("success", "Item removed from cart");
+    res.redirect("/cart");
+  } catch (err) {
+    next(err);
+  }
+});
+
+
 
 // ---------------- PLACE ORDER ----------------
 app.post("/orders/place", isLoggedIn, isUser, async (req, res, next) => {

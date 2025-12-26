@@ -1,7 +1,158 @@
 <%- layout("layouts/boilerplate.ejs") %>
 
-<div class="container text-center mt-5">
-    <h1 class="text-danger">Oops!</h1>
-    <p class="lead"><%= message %></p>
-    <a href="/" class="btn btn-primary mt-3">Go Home</a>
+<style>
+/* ============================= */
+/* Error Page Wrapper (IMPORTANT) */
+/* ============================= */
+.error-page {
+    min-height: calc(100vh - 140px); /* header + footer height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ============================= */
+/* Background animation */
+/* ============================= */
+.bg-animate {
+    position: absolute;
+    inset: -20%;
+    background:
+        radial-gradient(circle at 10% 20%, rgba(255,255,255,0.04), transparent 15%),
+        radial-gradient(circle at 90% 80%, rgba(255,255,255,0.03), transparent 15%);
+    animation: floatBG 12s linear infinite;
+    z-index: 0;
+    pointer-events: none;
+}
+
+@keyframes floatBG {
+    0%   { transform: translate3d(0,0,0) rotate(0deg); }
+    50%  { transform: translate3d(6%, -3%, 0) rotate(3deg); }
+    100% { transform: translate3d(0,0,0) rotate(0deg); }
+}
+
+/* ============================= */
+/* Error Card */
+/* ============================= */
+.error-wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 720px;
+    padding: 2.2rem;
+    border-radius: 16px;
+    background: linear-gradient(
+        180deg,
+        rgba(255,255,255,0.08),
+        rgba(255,255,255,0.04)
+    );
+    backdrop-filter: blur(8px);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+    color: #f8fafc;
+    text-align: center;
+    animation: popIn .6s cubic-bezier(.2,.9,.3,1);
+}
+
+@keyframes popIn {
+    0%   { opacity: 0; transform: translateY(18px) scale(.98); }
+    60%  { opacity: 1; transform: translateY(-6px) scale(1.01); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ============================= */
+/* Icon */
+/* ============================= */
+.error-icon {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 44px;
+    background: linear-gradient(
+        135deg,
+        rgba(255,255,255,0.08),
+        rgba(255,255,255,0.02)
+    );
+    box-shadow:
+        0 8px 20px rgba(0,0,0,0.45),
+        inset 0 -6px 14px rgba(0,0,0,0.2);
+    animation: floatIcon 2.8s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-8px); }
+    100% { transform: translateY(0); }
+}
+
+/* ============================= */
+/* Text */
+/* ============================= */
+.error-wrap h1 {
+    margin: .3rem 0;
+    font-weight: 800;
+    color: #fecaca;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.45);
+}
+
+.error-wrap p {
+    margin: .5rem 0 1.5rem;
+    font-size: 1.05rem;
+    color: rgba(255,255,255,0.9);
+}
+
+/* ============================= */
+/* Button */
+/* ============================= */
+.btn-cta {
+    display: inline-block;
+    padding: .6rem 1.1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(180deg, #2b8cff, #1c6dd8);
+    text-decoration: none;
+    box-shadow:
+        0 10px 28px rgba(43,140,255,0.25),
+        0 2px 6px rgba(0,0,0,0.35);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.btn-cta:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(43,140,255,0.35);
+}
+
+/* ============================= */
+/* Mobile */
+/* ============================= */
+@media (max-width: 480px) {
+    .error-wrap {
+        padding: 1.5rem;
+        border-radius: 14px;
+    }
+    .error-icon {
+        width: 76px;
+        height: 76px;
+        font-size: 36px;
+    }
+}
+</style>
+
+<div class="error-page">
+    <div class="bg-animate" aria-hidden="true"></div>
+
+    <div class="container">
+        <div class="error-wrap mx-auto">
+            <div class="error-icon">⚠️</div>
+            <h1>Oops!</h1>
+            <p><%= message %></p>
+            <a href="/" class="btn-cta">Go Home</a>
+        </div>
+    </div>
 </div>

@@ -1,41 +1,389 @@
 <%- layout("layouts/boilerplate") %>
 
-    <div class="container mt-4">
-        <h2>All Orders</h2>
+<style>
+/* Page styles that complement animations.css */
+.container.orders-wrapper {
+    background: rgba(255, 255, 255, 0.279);
+    border-radius: 12px;
+    padding: 14px;
+}
 
-        <table class="table">
+/* Table / row hover uses .animate-card from animations.css but tune visuals here */
+.table thead th {
+    border-bottom: 2px solid rgba(255,255,255,0.06);
+}
+.table td, .table th {
+    vertical-align: middle;
+}
+.table tbody tr.animate-card {
+    opacity: 1;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.table tbody tr.animate-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+    cursor: pointer;
+}
+
+/* Button hover/touch feel */
+.btn-outline-dark {
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.btn-outline-dark:hover {
+    transform: translateY(-2px) scale(1.02);
+    background-color: rgba(0,0,0,0.04);
+}
+
+/* Status badges that match the project's tone (blue/yellow/green/red) */
+.badge.info {
+    background: rgba(13,110,253,0.12);
+    color: #0d6efd;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: .35em .55em;
+}
+.badge.success {
+    background: rgba(40,167,69,0.12);
+    color: #28a745;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: .35em .55em;
+}
+.badge.danger {
+    background: rgba(220,53,69,0.12);
+    color: #dc3545;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: .35em .55em;
+}
+.badge.warning {
+    background: rgba(255,193,7,0.12);
+    color: #ffc107;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: .35em .55em;
+}
+
+/* Small additions to make the table interactive and accessible */
+.table thead th.sortable { cursor: pointer; user-select: none; }
+.table thead th .sort-indicator { margin-left: 6px; opacity: 0.6; font-size: 0.9em; }
+.toolbar { gap: 12px; }
+.order-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+}
+.order-modal .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(2px);
+}
+.order-modal .panel {
+    position: relative;
+    background: #fff;
+    color: #000;
+    max-width: 720px;
+    width: calc(100% - 40px);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    padding: 18px;
+    z-index: 2;
+}
+.order-modal .panel h5 { margin-bottom: 12px; }
+.order-modal .panel .meta { column-gap: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+.order-modal .close-btn { position: absolute; right: 12px; top: 8px; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; }
+.order-modal.show { display: flex; }
+</style>
+
+    <div class="container mt-4 animate-fade orders-wrapper">
+        <h2 class="animate-slide animate-title" style="color: rgb(10, 183, 209); text-shadow: 0 2px 6px rgba(0,0,0,0.45);">
+            All Orders
+        </h2>
+
+        <!-- Toolbar: search + status filter -->
+        <div class="d-flex align-items-center justify-content-between mt-3 mb-2 toolbar">
+            <div class="input-group w-50">
+                <input id="order-search" class="form-control" placeholder="Search User, Status or Amount" aria-label="Search orders">
+                <button id="clear-search" class="btn btn-sm btn-outline-dark d-flex align-items-center" type="button" title="Clear search" aria-label="Clear search" style="border-radius:8px; padding:.38rem .6rem; background: #07d31573; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 6px 20px rgba(0,0,0,0.12); transition: transform .14s ease, box-shadow .14s ease; transform-origin: center; color:#212529;">
+                    <i class="fa fa-times me-1" aria-hidden="true"></i>
+                    <span style="font-weight:600;">Clear</span>
+                </button>
+            </div>
+
+            <div class="d-flex align-items-center">
+                <select id="status-filter" class="form-select me-2" aria-label="Filter by status">
+                    <option value="">All statuses</option>
+                    <option value="success">Delivered / Completed</option>
+                    <option value="warning">Pending / Processing</option>
+                    <option value="danger">Cancelled</option>
+                    <option value="info">Other</option>
+                </select>
+            </div>
+        </div>
+
+        <table class="table table-hover floating-table" style="border-collapse:separate; border-spacing:0; background: linear-gradient(135deg, rgba(6,18,40,0.36), rgba(26,58,102,0.18)); border: 1px solid rgba(255,255,255,0.06); border-radius:12px; box-shadow: 0 14px 40px rgba(2,6,23,0.55); overflow:hidden; backdrop-filter: blur(6px); background-color: #147fe4 !important;">
             <thead>
                 <tr>
-                    <th>Order ID</th>
-                    <th>User</th>
-                    <th>Total</th>
-                    <th>Status</th>
+                    <th class="sortable" data-sort="OrderID" tabindex="0">Order ID <span class="sort-indicator"></span></th>
+                    <th class="sortable" data-sort="UserID" tabindex="0">User <span class="sort-indicator"></span></th>
+                    <th class="sortable" data-sort="total_amount" tabindex="0">Total <span class="sort-indicator"></span></th>
+                    <th class="sortable" data-sort="Status" tabindex="0">Status <span class="sort-indicator"></span></th>
                     <th>Action</th>
                 </tr>
             </thead>
 
-            <tbody>
-                <% orders.forEach(o=> { %>
-                    <tr>
-                        <td>#<%= o.OrderID %>
-                        </td>
+            <tbody id="orders-tbody" >
+                <% orders.forEach(o => { 
+                       let statusClass = 'badge info';
+                       const s = String(o.Status || '').toLowerCase();
+                       if (s === 'delivered' || s === 'completed') statusClass = 'badge success';
+                       else if (s === 'cancelled' || s === 'canceled') statusClass = 'badge danger';
+                       else if (s === 'pending' || s === 'processing') statusClass = 'badge warning';
+                %>
+                    <tr class="animate-card" data-order='<%- JSON.stringify(o).replace(/'/g, "&#39;") %>' tabindex="0" role="button" aria-label="Open order <%= o.OrderID %> details">
+                        <td>#<%= o.OrderID %></td>
+                        <td><%= o.UserID %></td>
+                        <td>₹ <%= Number(o.total_amount).toFixed(2) %></td>
                         <td>
-                            <%= o.UserID %>
-                        </td>
-                        <td>₹ <%= Number(o.total_amount).toFixed(2) %>
-                        </td>
-                        <td>
-                            <span class="badge bg-info">
+                            <span class="<%= statusClass %>">
                                 <%= o.Status %>
                             </span>
                         </td>
                         <td>
-                            <a href="/admin/orders/<%= o.OrderID %>" class="btn btn-sm btn-outline-dark">
+                            <a href="/admin/orders/<%= o.OrderID %>" class="btn btn-sm btn-outline-dark me-1" title="Open full page">
                                 <i class="fa fa-eye"></i>&nbsp;View
                             </a>
+                            <button class="btn btn-sm btn-outline-dark quick-view" title="Quick view">
+                                <i class="fa fa-info-circle"></i>&nbsp;Details
+                            </button>
                         </td>
                     </tr>
-                    <% }) %>
+                <% }) %>
             </tbody>
         </table>
     </div>
+
+    <!-- Modal (custom, lightweight) -->
+    <div id="order-modal" class="order-modal" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="overlay" data-close="true"></div>
+        <div class="panel" role="document">
+            <button class="close-btn" id="close-modal" aria-label="Close">&times;</button>
+            <h5 id="modal-title">Order <span id="modal-order-id"></span></h5>
+            <div class="meta" id="modal-meta"></div>
+            <hr>
+            <div id="modal-body"></div>
+            <div class="mt-3 d-flex justify-content-end gap-2">
+                <button id="copy-id" class="btn btn-outline-dark">Copy Order ID</button>
+                <a id="open-full" class="btn btn-dark" href="#">Open full order</a>
+            </div>
+        </div>
+    </div>
+
+<script>
+(function () {
+    // Utilities
+    const tbody = document.getElementById('orders-tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    // Decode function for JSON encoded in data-order
+    function parseOrderData(tr) {
+        const raw = tr.getAttribute('data-order') || '';
+        try {
+            return JSON.parse(raw.replace(/&#39;/g, "'"));
+        } catch (e) {
+            // Fallback to reading cells if JSON fails
+            return {
+                OrderID: tr.cells[0] ? tr.cells[0].textContent.replace('#','').trim() : '',
+                UserID: tr.cells[1] ? tr.cells[1].textContent.trim() : '',
+                total_amount: tr.cells[2] ? parseFloat(tr.cells[2].textContent.replace(/[^0-9.-]+/g,"")) : 0,
+                Status: tr.cells[3] ? tr.cells[3].textContent.trim() : ''
+            };
+        }
+    }
+
+    // Build a small index: {tr, data, text}
+    const indexed = rows.map(tr => {
+        const data = parseOrderData(tr);
+        const text = [
+            String(data.OrderID || ''),
+            String(data.UserID || ''),
+            String(data.Status || ''),
+            String(data.total_amount || '')
+        ].join(' ').toLowerCase();
+        return { tr, data, text };
+    });
+
+    // Search & filter
+    const searchInput = document.getElementById('order-search');
+    const clearSearch = document.getElementById('clear-search');
+    const statusFilter = document.getElementById('status-filter');
+
+    function applyFilters() {
+        const q = searchInput.value.trim().toLowerCase();
+        const status = statusFilter.value; // badge class hint (success, warning, danger, info) or ''
+        indexed.forEach(item => {
+            const matchesSearch = !q || item.text.indexOf(q) !== -1;
+            let matchesStatus = true;
+            if (status) {
+                // convert the item's Status string to our status class mapping
+                const s = String(item.data.Status || '').toLowerCase();
+                let cls = 'info';
+                if (s === 'delivered' || s === 'completed') cls = 'success';
+                else if (s === 'cancelled' || s === 'canceled') cls = 'danger';
+                else if (s === 'pending' || s === 'processing') cls = 'warning';
+                matchesStatus = cls === status;
+            }
+            item.tr.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    clearSearch.addEventListener('click', () => { searchInput.value = ''; applyFilters(); searchInput.focus(); });
+    statusFilter.addEventListener('change', applyFilters);
+
+    // Sorting
+    const headers = Array.from(document.querySelectorAll('th.sortable'));
+    let currentSort = { key: null, dir: 1 }; // dir: 1 asc, -1 desc
+
+    function sortBy(key, dir) {
+        const compare = (a, b) => {
+            const va = a.data[key];
+            const vb = b.data[key];
+            // numeric sort for OrderID & total_amount when possible
+            if (key === 'OrderID' || key === 'total_amount') {
+                const na = Number(va) || 0;
+                const nb = Number(vb) || 0;
+                return (na - nb) * dir;
+            }
+            // fallback to string
+            return String(va || '').localeCompare(String(vb || '')) * dir;
+        };
+        // remove hidden ones first
+        indexed.sort(compare);
+        // re-append in new order (only visible rows will remain visible)
+        indexed.forEach(item => tbody.appendChild(item.tr));
+        // update indicators
+        headers.forEach(h => {
+            const ind = h.querySelector('.sort-indicator');
+            if (h.dataset.sort === key) {
+                ind.textContent = dir === 1 ? '▲' : '▼';
+            } else {
+                ind.textContent = '';
+            }
+        });
+    }
+
+    headers.forEach(h => {
+        const key = h.dataset.sort;
+        const handler = () => {
+            if (currentSort.key === key) currentSort.dir = -currentSort.dir;
+            else { currentSort.key = key; currentSort.dir = 1; }
+            sortBy(currentSort.key, currentSort.dir);
+        };
+        h.addEventListener('click', handler);
+        h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(); } });
+    });
+
+    // Quick-view modal
+    const modal = document.getElementById('order-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalOrderId = document.getElementById('modal-order-id');
+    const modalMeta = document.getElementById('modal-meta');
+    const modalBody = document.getElementById('modal-body');
+    const closeModalBtn = document.getElementById('close-modal');
+    const openFullBtn = document.getElementById('open-full');
+    const copyBtn = document.getElementById('copy-id');
+
+    function openModal(item) {
+        const d = item.data;
+        modalOrderId.textContent = `#${d.OrderID}`;
+        modalTitle.setAttribute('aria-label', `Order ${d.OrderID}`);
+        modalMeta.innerHTML = `
+            <div><strong>User:</strong> ${d.UserID || '-'}</div>
+            <div><strong>Status:</strong> <span class="badge ${statusClassFor(d.Status)}">${d.Status || '-'}</span></div>
+            <div><strong>Total:</strong> ₹ ${Number(d.total_amount || 0).toFixed(2)}</div>
+        `;
+        // Show all other fields in JSON style (except those already shown)
+        const showFields = Object.keys(d).filter(k => !['OrderID','UserID','Status','total_amount'].includes(k));
+        if (showFields.length) {
+            modalBody.innerHTML = '<pre style="white-space:pre-wrap; margin:0; font-size:0.9rem;">' + showFields.map(k => `${k}: ${JSON.stringify(d[k])}`).join('\n') + '</pre>';
+        } else {
+            modalBody.innerHTML = '<div class="text-muted">No additional details available.</div>';
+        }
+        openFullBtn.href = `/admin/orders/${d.OrderID}`;
+        copyBtn.onclick = () => copyToClipboard(String(d.OrderID));
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+        // focus close for keyboard users
+        closeModalBtn.focus();
+    }
+
+    function statusClassFor(status) {
+        const s = String(status || '').toLowerCase();
+        if (s === 'delivered' || s === 'completed') return 'success';
+        if (s === 'cancelled' || s === 'canceled') return 'danger';
+        if (s === 'pending' || s === 'processing') return 'warning';
+        return 'info';
+    }
+
+    function copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                copyBtn.textContent = 'Copied';
+                setTimeout(() => (copyBtn.textContent = 'Copy Order ID'), 1200);
+            }).catch(() => {});
+        } else {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); copyBtn.textContent = 'Copied'; setTimeout(()=>copyBtn.textContent = 'Copy Order ID',1200); } catch(e) {}
+            ta.remove();
+        }
+    }
+
+    // Open modal on 'Details' button or row Enter (ignoring clicks on the "View" link)
+    tbody.addEventListener('click', e => {
+        const btn = e.target.closest('.quick-view');
+        if (btn) {
+            const tr = btn.closest('tr');
+            const item = indexed.find(i => i.tr === tr);
+            if (item) openModal(item);
+            e.preventDefault();
+            return;
+        }
+        const tr = e.target.closest('tr');
+        if (!tr) return;
+        const isLink = e.target.closest('a');
+        if (isLink) return; // let link navigate
+        const item = indexed.find(i => i.tr === tr);
+        if (item) openModal(item);
+    });
+
+    // support keyboard Enter on row
+    tbody.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            const tr = e.target.closest('tr');
+            if (!tr) return;
+            const item = indexed.find(i => i.tr === tr);
+            if (item) openModal(item);
+        }
+    });
+
+    // close modal
+    function closeModal() {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+    closeModalBtn.addEventListener('click', closeModal);
+    modal.querySelector('.overlay').addEventListener('click', closeModal);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    // initial sort (optional)
+    // sortBy('OrderID', 1); // uncomment to sort initially by OrderID
+
+})();
+</script>

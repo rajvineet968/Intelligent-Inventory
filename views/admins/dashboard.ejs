@@ -1,30 +1,87 @@
 <%- layout("layouts/boilerplate") %>
 
-<div class="text-center mt-5">
-    <h2 style="color: aliceblue;">Admin Dashboard</h2>
-    <p style="color: aliceblue;">Only admins can access this page.</p>
+<div class="text-center mt-5 animate-fade">
+    <h2 style="color: #ffffff; font-weight: 700; letter-spacing: 1px;">Admin Dashboard</h2>
+    <p style="color: #e0e0e0; font-size: 16px; margin-top: 8px;">Only admins can access this page.</p>
 </div>
 
-<a href="/products/new" class="btn btn-primary mt-3">
-    Add New Product
-</a>
+<div class="text-center mt-4">
+    <a href="/products/new" class="btn btn-danger animate-fade" style="animation-delay: 0.2s; border-radius: 30px; padding: 12px 32px; font-weight: 600; transition: all 0.3s ease;">
+        + Add New Product
+    </a>
+</div>
 
-<div class="container mt-4">
-    <h2>Admin Dashboard</h2>
+<div class="container mt-5">
+    <h2 class="animate-fade" style="animation-delay: 0.3s; color: #ffffff; font-weight: 700; margin-bottom: 30px;">Dashboard Overview</h2>
 
-    <div class="row mt-4">
+    <div class="row mt-4 g-4">
         <div class="col-md-6">
-            <div class="card shadow p-3">
-                <h4>Total Products</h4>
-                <h2><%= productCount %></h2>
+            <div class="card shadow-lg animate-card" style="animation-delay: 0.4s; background: rgba(220, 53, 69, 0.2); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 24px; padding: 28px; backdrop-filter: blur(10px);">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div class="icon-circle" style="background: rgba(220, 53, 69, 0.2); color: #dc3545; width: 70px; height: 70px;">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div>
+                        <h5 style="color: #e0e0e0; margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Total Products</h5>
+                        <h2 style="color: #dc3545; margin: 8px 0 0 0; font-weight: 700;"><%= productCount %></h2>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="col-md-6">
-            <div class="card shadow p-3">
-                <h4>Total Categories</h4>
-                <h2><%= categoryCount %></h2>
+            <div class="card shadow-lg animate-card" style="animation-delay: 0.5s; background: rgba(13, 110, 253, 0.2); border: 1px solid rgba(13, 110, 253, 0.3); border-radius: 24px; padding: 28px; backdrop-filter: blur(10px);">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div class="icon-circle" style="background: rgba(13, 110, 253, 0.2); color: #0d6efd; width: 70px; height: 70px;">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <div>
+                        <h5 style="color: #e0e0e0; margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Total Categories</h5>
+                        <h2 style="color: #0d6efd; margin: 8px 0 0 0; font-weight: 700;"><%= categoryCount %></h2>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .btn-danger {
+        background: #dc3545;
+        border: none;
+        color: #ffffff;
+        transition: all 0.3s ease;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(220, 53, 69, 0.4);
+    }
+
+    .btn-danger:active {
+        transform: translateY(-2px) scale(0.98);
+    }
+
+    .card {
+        transition: all 0.3s ease;
+        border: none !important;
+    }
+
+    .card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .icon-circle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    .card:hover .icon-circle {
+        transform: scale(1.1) rotate(5deg);
+    }
+</style>
