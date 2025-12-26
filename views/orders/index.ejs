@@ -13,7 +13,7 @@
                             <th>Total</th>
                             <th>Status</th>
                             <th>Date</th>
-                            <th></th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -23,15 +23,19 @@
                                 </td>
                                 <td>₹ <%= Number(order.total_amount).toFixed(2) %>
                                 </td>
-                                <td><span class="badge bg-success">
+                                <td><span class="badge 
+                                                        <%= order.Status === 'DELIVERED' ? 'bg-success' :
+                                                            order.Status === 'CANCELLED' ? 'bg-danger' :
+                                                            'bg-warning' %>">
                                         <%= order.Status %>
-                                    </span></td>
+                                    </span>
+                                </td>
                                 <td>
                                     <%= new Date(order.created_at).toLocaleString() %>
                                 </td>
                                 <td>
                                     <a href="/orders/<%= order.OrderID %>" class="btn btn-sm btn-primary">
-                                        View
+                                        <i class="fa fa-eye"></i>&nbsp;View
                                     </a>
                                 </td>
                             </tr>

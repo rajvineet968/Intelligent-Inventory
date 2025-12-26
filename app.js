@@ -167,16 +167,20 @@ app.get("/", (req, res) => {
 app.get("/products", async (req, res, next) => {
   try {
     const [products] = await pool.query(`
-            SELECT IFNULL(c.Name, 'Uncategorized') AS Category,
+            SELECT 
                 p.ProductID,
                 p.StockCode,
                 p.Description,
                 p.Unit_Price,
-                p.Quantity,
+                p.Quantity AS total_stock,
+                IFNULL(p.Quantity - IFNULL(SUM(ci.quantity), 0), p.Quantity) AS available_stock,
                 p.image_url,
                 c.Name AS Category
             FROM product p
             LEFT JOIN category c ON p.CatID = c.CategoryID
+            LEFT JOIN cart_items ci ON p.ProductID = ci.ProductID
+            LEFT JOIN cart ca ON ci.CartID = ca.CartID
+            GROUP BY p.ProductID;
         `);
 
     res.render("listings/listings.ejs", { products });
@@ -319,6 +323,9 @@ app.put(
         SET StockCode = ?, Description = ?, Unit_Price = ?, Quantity = ?, CatID = ?
       `;
       const params = [stockcode, description, unit_price, quantity, catid];
+
+      // 🔥 Clear cart reservations for this product
+      await pool.query("DELETE FROM cart_items WHERE ProductID = ?", [id]);
 
       if (imageUrl) {
         query += ", image_url = ?";
@@ -537,11 +544,19 @@ app.post(
 
       // 1️⃣ Get product stock & price
       const [[product]] = await pool.query(
-        "SELECT Quantity, Unit_Price FROM product WHERE ProductID = ?",
+        `
+  SELECT 
+    p.Unit_Price,
+    (p.Quantity - IFNULL(SUM(ci.quantity),0)) AS available_stock
+  FROM product p
+  LEFT JOIN cart_items ci ON p.ProductID = ci.ProductID
+  WHERE p.ProductID = ?
+  GROUP BY p.ProductID
+  `,
         [productId]
       );
 
-      if (!product || product.Quantity <= 0) {
+      if (!product || product.available_stock <= 0) {
         req.flash("error", "Product out of stock");
         return res.redirect("/products");
       }
@@ -566,7 +581,7 @@ app.post(
         [cart.CartID, productId]
       );
 
-      if (item && item.quantity >= product.Quantity) {
+      if (item && item.quantity >= product.available_stock) {
         req.flash("error", "Stock limit reached");
         return res.redirect("/products");
       }
@@ -630,12 +645,83 @@ app.get("/cart", isLoggedIn, isUser, async (req, res, next) => {
   }
 });
 
+// UPDATE CART ITEM
+app.put("/cart/item/:id", isLoggedIn, isUser, async (req, res, next) => {
+  try {
+    const userId = req.user._id.toString();
+    const { id } = req.params;
+    let { quantity } = req.body;
+
+    quantity = Number(quantity);
+
+    // ❌ invalid quantity
+    if (isNaN(quantity) || quantity < 0) {
+      req.flash("error", "Invalid quantity");
+      return res.redirect("/cart");
+    }
+
+    // 🔎 get cart item + product
+    const [[item]] = await pool.query(
+      `
+      SELECT 
+        ci.CartID,
+        ci.ProductID,
+        p.Quantity AS total_stock,
+        IFNULL(p.Quantity - IFNULL(SUM(ci2.quantity),0), p.Quantity) AS available_stock
+      FROM cart_items ci
+      JOIN product p ON ci.ProductID = p.ProductID
+      LEFT JOIN cart_items ci2 ON p.ProductID = ci2.ProductID
+      WHERE ci.CartItemID = ?
+      GROUP BY p.ProductID
+    `,
+      [id]
+    );
+
+    if (!item) {
+      req.flash("error", "Cart item not found");
+      return res.redirect("/cart");
+    }
+
+    // ❌ exceeds stock
+    if (quantity > item.available_stock) {
+      req.flash("error", "Stock limit exceeded");
+      return res.redirect("/cart");
+    }
+
+    // 🧹 remove item
+    if (quantity === 0) {
+      await pool.query("DELETE FROM cart_items WHERE CartItemID = ?", [id]);
+      req.flash("success", "Item removed");
+      return res.redirect("/cart");
+    }
+
+    // 🔁 update quantity
+    await pool.query(
+      "UPDATE cart_items SET quantity = ? WHERE CartItemID = ?",
+      [quantity, id]
+    );
+
+    req.flash("success", "Cart updated");
+    res.redirect("/cart");
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ---------------- PLACE ORDER ----------------
 app.post("/orders/place", isLoggedIn, isUser, async (req, res, next) => {
   const connection = await pool.getConnection();
 
   try {
     const userId = req.user._id.toString();
+
+    const { address_line1, address_line2, city, state, pincode } = req.body;
+
+    if (!address_line1 || !city || !state || !pincode) {
+      req.flash("error", "Delivery address is required");
+      return res.redirect("/cart");
+    }
+
     await connection.beginTransaction();
 
     // 1️⃣ Get cart
@@ -678,20 +764,32 @@ app.post("/orders/place", isLoggedIn, isUser, async (req, res, next) => {
       }
     }
 
-    // 4️⃣ Total calculation
+    // 4️⃣ Calculate total
     let total = 0;
-    items.forEach(i => {
+    items.forEach((i) => {
       total += i.Unit_Price * i.Quantity;
     });
 
-    // 5️⃣ Create order
+    // 5️⃣ Create order WITH ADDRESS
     const [orderResult] = await connection.query(
-      "INSERT INTO orders (UserID, total_amount, Status) VALUES (?, ?, ?)",
-      [userId, total, "PLACED"]
+      `INSERT INTO orders 
+       (UserID, total_amount, Status, address_line1, address_line2, city, state, pincode)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        userId,
+        total,
+        "PLACED",
+        address_line1,
+        address_line2,
+        city,
+        state,
+        pincode,
+      ]
     );
+
     const orderId = orderResult.insertId;
 
-    // 6️⃣ Insert order items + update stock (ONCE)
+    // 6️⃣ Insert order items + reduce stock
     for (let item of items) {
       await connection.query(
         `INSERT INTO order_items 
@@ -707,19 +805,14 @@ app.post("/orders/place", isLoggedIn, isUser, async (req, res, next) => {
     }
 
     // 7️⃣ Clear cart
-    await connection.query(
-      "DELETE FROM cart_items WHERE CartID = ?",
-      [cart.CartID]
-    );
-    await connection.query(
-      "DELETE FROM cart WHERE CartID = ?",
-      [cart.CartID]
-    );
+    await connection.query("DELETE FROM cart_items WHERE CartID = ?", [
+      cart.CartID,
+    ]);
+    await connection.query("DELETE FROM cart WHERE CartID = ?", [cart.CartID]);
 
     await connection.commit();
     req.flash("success", "Order placed successfully");
     res.redirect("/products");
-
   } catch (err) {
     await connection.rollback();
     next(err);
@@ -727,7 +820,6 @@ app.post("/orders/place", isLoggedIn, isUser, async (req, res, next) => {
     connection.release();
   }
 });
-
 
 // ---------------- USER ORDERS ----------------
 app.get("/orders", isLoggedIn, isUser, async (req, res, next) => {
@@ -808,16 +900,19 @@ app.get("/products/category/:id", async (req, res, next) => {
     const [products] = await pool.query(
       `
             SELECT 
-                p.ProductID,
-                p.StockCode,
-                p.Description,
-                p.Unit_Price,
-                p.Quantity,
-                p.image_url,
-                c.Name AS Category
-            FROM product p
-            JOIN category c ON p.CatID = c.CategoryID
-            WHERE c.CategoryID = ?
+  p.ProductID,
+  p.StockCode,
+  p.Description,
+  p.Unit_Price,
+  p.Quantity AS total_stock,
+  (p.Quantity - IFNULL(SUM(ci.quantity),0)) AS available_stock,
+  p.image_url,
+  c.Name AS Category
+FROM product p
+JOIN category c ON p.CatID = c.CategoryID
+LEFT JOIN cart_items ci ON p.ProductID = ci.ProductID
+WHERE c.CategoryID = ?
+GROUP BY p.ProductID;
         `,
       [id]
     );

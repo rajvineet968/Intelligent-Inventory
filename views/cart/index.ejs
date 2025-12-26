@@ -5,40 +5,93 @@
 
         <% if (items.length===0) { %>
             <p>Your cart is empty.</p>
+            <a href="/products" class="btn btn-primary">Shop Now</a>
             <% } else { %>
 
-                <table class="table">
+                <table class="table align-middle">
                     <thead>
                         <tr>
                             <th>Product</th>
                             <th>Price</th>
-                            <th>Qty</th>
+                            <th style="width:160px;">Qty</th>
                             <th>Total</th>
+                            <th></th>
                         </tr>
                     </thead>
+
                     <tbody>
                         <% items.forEach(item=> { %>
                             <tr>
+                                <!-- PRODUCT -->
                                 <td>
-                                    <img src="<%= item.image_url %>" width="60">
+                                    <img src="<%= item.image_url %>" width="60" class="me-2">
                                     <%= item.StockCode %>
                                 </td>
-                                <td>₹ <%= Number(item.Unit_Price).toFixed(2) %>
-                                </td>
+
+                                <!-- PRICE -->
                                 <td>
-                                    <%= item.quantity %>
+                                    ₹ <%= Number(item.Unit_Price).toFixed(2) %>
                                 </td>
-                                <td>₹ <%= Number(item.item_total).toFixed(2) %>
+
+                                <!-- QUANTITY -->
+                                <td>
+                                    <form action="/cart/item/<%= item.CartItemID %>?_method=PUT" method="POST"
+                                        class="d-flex gap-2">
+
+                                        <input type="number" name="quantity" value="<%= item.quantity %>" min="1"
+                                            class="form-control form-control-sm" style="width:80px">
+
+                                        <button class="btn btn-sm btn-outline-success">
+                                            Update
+                                        </button>
+                                    </form>
+                                </td>
+
+                                <!-- ITEM TOTAL -->
+                                <td>
+                                    ₹ <%= Number(item.item_total).toFixed(2) %>
+                                </td>
+
+                                <!-- REMOVE -->
+                                <td>
+                                    <form action="/cart/item/<%= item.CartItemID %>?_method=PUT" method="POST">
+                                        <button class="btn btn-sm btn-outline-danger">
+                                            Remove
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                             <% }) %>
                     </tbody>
                 </table>
 
-                <h4>Total: ₹ <%= Number(total).toFixed(2) %>
+                <h4 class="mt-3">
+                    Total: ₹ <%= Number(total).toFixed(2) %>
                 </h4>
-                
+
                 <form action="/orders/place" method="POST">
+                    <h5 class="mt-4">Delivery Address</h5>
+
+                    <div class="mb-2">
+                        <input name="address_line1" class="form-control" placeholder="Address Line 1" required>
+                    </div>
+
+                    <div class="mb-2">
+                        <input name="address_line2" class="form-control" placeholder="Address Line 2 (optional)">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <input name="city" class="form-control" placeholder="City" required>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <input name="state" class="form-control" placeholder="State" required>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <input name="pincode" class="form-control" placeholder="Pincode" required>
+                        </div>
+                    </div>
+
                     <button class="btn btn-success mt-3">
                         Place Order
                     </button>

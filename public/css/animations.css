@@ -142,8 +142,8 @@ body::after {
 header,
 footer,
 .container {
-    position: relative;
-    z-index: 1;
+    position: sticky;
+    bottom: 0;
 }
 
 

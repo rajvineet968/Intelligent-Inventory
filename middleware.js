@@ -87,7 +87,7 @@ what it does: */
 module.exports.isAdmin = (req, res, next) => {
     if (!req.isAuthenticated() || req.user.role !== "admin") {
         req.flash("error", "Admin access only.");
-        return res.redirect("/");
+        return res.redirect("/products");
     }
     next();
 };

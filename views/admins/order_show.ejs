@@ -34,12 +34,20 @@
                     <% }) %>
             </tbody>
         </table>
+        <h5>Delivery Address</h5>
+        <p>
+            <%= order.address_line1 %><br>
+                <% if(order.address_line2){ %>
+                    <%= order.address_line2 %><br>
+                        <% } %>
+                            <%= order.city %>, <%= order.state %> - <%= order.pincode %>
+        </p>
 
         <h4>Total: ₹ <%= Number(order.total_amount).toFixed(2) %>
         </h4>
 
         <!-- STATUS UPDATE -->
-        <form method="POST" action="/admin/orders/<%= order.OrderID %>/status?_method=PUT">
+        <form method="POST" action="/admin/orders/<%= order.OrderID %>/status?_method=PUT" class="mt-3">
             <select name="status" class="form-select w-25">
                 <% ['PLACED','CONFIRMED','SHIPPED','DELIVERED','CANCELLED'].forEach(s=> { %>
                     <option value="<%= s %>" <%=order.Status===s ? 'selected' : '' %>>

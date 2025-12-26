@@ -33,6 +33,14 @@
                     <% }) %>
             </tbody>
         </table>
+        <h5>Delivery Address</h5>
+        <p>
+            <%= order.address_line1 %><br>
+                <% if(order.address_line2){ %>
+                    <%= order.address_line2 %><br>
+                        <% } %>
+                            <%= order.city %>, <%= order.state %> - <%= order.pincode %>
+        </p>
 
         <h4 class="mt-3">Grand Total: ₹ <%= Number(order.total_amount).toFixed(2) %>
         </h4>
