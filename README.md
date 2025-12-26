@@ -28,11 +28,19 @@ This repository follows **industry-standard Git practices** and excludes non-sou
 ## 📁 Project Structure
 
 .
-├── appM.js # Main application entry
+├── app.js # Main application entry
+
+
 ├── ml/ # Machine learning code
+
+
 │ └── *.pkl # Trained ML models (ignored by Git)
+
+
 ├── README.md
+
 ├── .env # Environment variables (ignored)
+
 ├── node_modules/ # Node.js dependencies (ignored)
 
 ---
