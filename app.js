@@ -450,6 +450,48 @@ app.put(
   }
 );
 
+// ---------------- ADMIN – FORECAST DASHBOARD ----------------
+app.get("/admin/forecast", isLoggedIn, isAdmin, async (req, res, next) => {
+  try {
+    // MySQL: Forecast data
+    const [forecasts] = await pool.query(`
+      SELECT 
+        fs.ProductID,
+        p.Description,
+        ROUND(AVG(fs.PredictedDemand)) AS avgDemand,
+        fs.ModelUsed
+      FROM forecast_summary fs
+      JOIN product p ON fs.ProductID = p.ProductID
+      GROUP BY fs.ProductID, fs.ModelUsed
+    `);
+
+    // MongoDB: LLM Insights
+    const client = await mongoose.connection.getClient();
+    const insights = await client
+      .db("inventory_ai")
+      .collection("llm_insights")
+      .find()
+      .toArray();
+
+    // Map insights by ProductID
+    const insightMap = {};
+    insights.forEach((i) => {
+      insightMap[i.product_id] = i.llm_summary;
+    });
+
+    // Merge
+    forecasts.forEach((f) => {
+      f.llm_summary = insightMap[f.ProductID] || "No insight available";
+    });
+
+    res.render("admins/forecast.ejs", { forecasts });
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+
 //  ---------------- AUTH ROUTES ----------------
 //SIGNUP ROUTES
 app.get("/signup", (req, res) => {
@@ -645,7 +687,6 @@ app.get("/cart", isLoggedIn, isUser, async (req, res, next) => {
   }
 });
 
-
 // ---------------- UPDATE CART ITEM QUANTITY ----------------
 app.put("/cart/item/:id", isLoggedIn, isUser, async (req, res, next) => {
   try {
@@ -671,16 +712,12 @@ app.put("/cart/item/:id", isLoggedIn, isUser, async (req, res, next) => {
   }
 });
 
-
 // REMOVE CART ITEM
 app.delete("/cart/item/:id", isLoggedIn, isUser, async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    await pool.query(
-      "DELETE FROM cart_items WHERE CartItemID = ?",
-      [id]
-    );
+    await pool.query("DELETE FROM cart_items WHERE CartItemID = ?", [id]);
 
     req.flash("success", "Item removed from cart");
     res.redirect("/cart");
@@ -688,8 +725,6 @@ app.delete("/cart/item/:id", isLoggedIn, isUser, async (req, res, next) => {
     next(err);
   }
 });
-
-
 
 // ---------------- PLACE ORDER ----------------
 app.post("/orders/place", isLoggedIn, isUser, async (req, res, next) => {

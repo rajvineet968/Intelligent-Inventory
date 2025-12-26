@@ -1,0 +1,67 @@
+<%- layout("layouts/boilerplate") %>
+    <div class="container mt-5">
+        <h2 class="text-center text-light mb-4">📊 Demand Forecast (Next 30 Days)</h2>
+
+        <!-- GRAPH -->
+        <div class="card chart-card p-4 mb-4">
+            <canvas id="forecastChart"></canvas>
+        </div>
+
+        <!-- SHORT AI INSIGHTS -->
+        <div class="row">
+            <% forecasts.forEach(f=> { %>
+                <div class="col-md-6 mb-3">
+                    <div class="card p-3 shadow-sm">
+                        <h5>
+                            <%= f.Description %>
+                        </h5>
+                        <p class="mb-1">
+                            <strong>Avg Demand:</strong>
+                            <%= f.avgDemand %> units/day
+                        </p>
+                        <small class="text-muted">
+                            AI Insight:
+                            <%= (f.avgDemand >= 8) ? "High demand – ensure sufficient stock"
+                                : (f.avgDemand >= 5) ? "Stable demand – maintain regular inventory"
+                                : "Low demand – avoid overstocking" %>
+                        </small>
+                    </div>
+                </div>
+                <% }) %>
+        </div>
+    </div>
+
+    <!-- CHART.JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const labels = <%- JSON.stringify(forecasts.map(function(f) { return f.Description; })) %>;
+        const data = <%- JSON.stringify(forecasts.map(function(f) { return f.avgDemand; })) %>;
+
+        new Chart(document.getElementById('forecastChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Avg Forecast Demand (30 Days)',
+                    data: data,
+                    backgroundColor: 'rgba(13, 110, 253, 0.7)'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Units / Day'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
