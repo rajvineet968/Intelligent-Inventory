@@ -1,67 +1,93 @@
 <%- layout("layouts/boilerplate") %>
-    <div class="container mt-5">
-        <h2 class="text-center text-light mb-4">📊 Demand Forecast (Next 30 Days)</h2>
 
-        <!-- GRAPH -->
-        <div class="card chart-card p-4 mb-4">
-            <canvas id="forecastChart"></canvas>
-        </div>
+<div class="container mt-5">
+    <h2 class="text-center text-light mb-4">
+        Demand Forecast – Next 30 Days
+    </h2>
 
-        <!-- SHORT AI INSIGHTS -->
-        <div class="row">
-            <% forecasts.forEach(f=> { %>
-                <div class="col-md-6 mb-3">
-                    <div class="card p-3 shadow-sm">
-                        <h5>
-                            <%= f.Description %>
-                        </h5>
-                        <p class="mb-1">
-                            <strong>Avg Demand:</strong>
-                            <%= f.avgDemand %> units/day
-                        </p>
-                        <small class="text-muted">
-                            AI Insight:
-                            <%= (f.avgDemand >= 8) ? "High demand – ensure sufficient stock"
-                                : (f.avgDemand >= 5) ? "Stable demand – maintain regular inventory"
-                                : "Low demand – avoid overstocking" %>
-                        </small>
-                    </div>
-                </div>
-                <% }) %>
-        </div>
+    <div class="card chart-card p-4 shadow">
+        <canvas id="forecastChart"></canvas>
     </div>
+</div>
 
-    <!-- CHART.JS -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
-    <script>
-        const labels = <%- JSON.stringify(forecasts.map(function(f) { return f.Description; })) %>;
-        const data = <%- JSON.stringify(forecasts.map(function(f) { return f.avgDemand; })) %>;
+<script>
+    const labels = <%- JSON.stringify(forecasts.map(f => f.Description)) %>;
+    const data = <%- JSON.stringify(forecasts.map(f => f.avgDemand)) %>;
 
-        new Chart(document.getElementById('forecastChart'), {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Avg Forecast Demand (30 Days)',
-                    data: data,
-                    backgroundColor: 'rgba(13, 110, 253, 0.7)'
-                }]
+    // 🔥 COMPRESSED AI INSIGHTS (3-line safe format)
+    const aiInsights = data.map(d => {
+        if (d >= 8) {
+            return ["High demand", "Stock up"];
+        } else if (d >= 5) {
+            return ["Stable demand", "Maintain inventory"];
+        } else {
+            return ["Low demand", "Avoid overstock"];
+        }
+    });
+
+    new Chart(document.getElementById('forecastChart'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                data,
+                backgroundColor: 'rgba(13,110,253,0.85)',
+                borderRadius: 14,
+                barThickness: 38
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+
+                // ✅ SAFE MULTI-LINE LABELS
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    offset: 8,
+                    clamp: true,
+                    formatter: (value, ctx) => {
+                        const insight = aiInsights[ctx.dataIndex];
+                        return `Avg: ${value} units/day\n${insight[0]}\n${insight[1]}`;
+                    },
+                    textAlign: 'center',
+                    font: {
+                        size: 11,
+                        weight: '600',
+                        lineHeight: 1.3
+                    },
+                    color: '#111827',
+                    backgroundColor: 'rgba(255,255,255,0.95)',
+                    borderRadius: 8,
+                    padding: {
+                        top: 6,
+                        bottom: 6,
+                        left: 8,
+                        right: 8
+                    }
+                }
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grace: '45%',   // 🔥 prevents any cut-off
+                    title: {
+                        display: true,
+                        text: 'Units / Day'
+                    }
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Units / Day'
-                        }
+                x: {
+                    ticks: {
+                        maxRotation: 20,
+                        minRotation: 15
                     }
                 }
             }
-        });
-    </script>
+        },
+        plugins: [ChartDataLabels]
+    });
+</script>
