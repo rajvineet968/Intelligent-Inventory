@@ -136,13 +136,13 @@ app.use(async (req, res, next) => {
 
       const [[cart]] = await pool.query(
         "SELECT CartID FROM cart WHERE UserID = ?",
-        [userId]
+        [userId],
       );
 
       if (cart) {
         const [[count]] = await pool.query(
           "SELECT SUM(quantity) AS total FROM cart_items WHERE CartID = ?",
-          [cart.CartID]
+          [cart.CartID],
         );
 
         res.locals.cartCount = count.total || 0;
@@ -199,10 +199,10 @@ const { isLoggedIn, isAdmin } = require("./middleware");
 
 app.get("/admin/dashboard", isLoggedIn, isAdmin, async (req, res) => {
   const [[productCount]] = await pool.query(
-    "SELECT COUNT(*) AS total FROM product"
+    "SELECT COUNT(*) AS total FROM product",
   );
   const [[categoryCount]] = await pool.query(
-    "SELECT COUNT(*) AS total FROM category"
+    "SELECT COUNT(*) AS total FROM category",
   );
 
   res.render("admins/dashboard.ejs", {
@@ -238,7 +238,7 @@ app.post(
       // 🔒 Category existence check
       const [[category]] = await pool.query(
         "SELECT CategoryID FROM category WHERE CategoryID = ?",
-        [catid]
+        [catid],
       );
       if (!category) {
         req.flash("error", "Invalid category selected");
@@ -248,7 +248,7 @@ app.post(
       // 🔒 Unique StockCode check
       const [[existing]] = await pool.query(
         "SELECT ProductID FROM product WHERE StockCode = ?",
-        [stockcode]
+        [stockcode],
       );
       if (existing) {
         req.flash("error", "Stock Code already exists");
@@ -260,7 +260,7 @@ app.post(
         `INSERT INTO product
         (StockCode, Description, Unit_Price, Quantity, CatID, image_url)
         VALUES (?, ?, ?, ?, ?, ?)`,
-        [stockcode, description, unit_price, quantity, catid, imageUrl]
+        [stockcode, description, unit_price, quantity, catid, imageUrl],
       );
 
       req.flash("success", "Product added successfully");
@@ -269,13 +269,13 @@ app.post(
       if (err.code === "ER_DUP_ENTRY") {
         req.flash(
           "error",
-          "Stock Code already exists. Please use a unique Stock Code."
+          "Stock Code already exists. Please use a unique Stock Code.",
         );
         return res.redirect("/products/new");
       }
       next(err);
     }
-  }
+  },
 );
 
 // EDIT PRODUCT FORM
@@ -285,7 +285,7 @@ app.get("/products/:id/edit", isLoggedIn, isAdmin, async (req, res, next) => {
 
     const [[product]] = await pool.query(
       "SELECT * FROM product WHERE ProductID = ?",
-      [id]
+      [id],
     );
 
     if (!product) {
@@ -343,13 +343,13 @@ app.put(
       if (err.code === "ER_DUP_ENTRY") {
         req.flash(
           "error",
-          "Stock Code already exists. Please choose a different Stock Code."
+          "Stock Code already exists. Please choose a different Stock Code.",
         );
         return res.redirect(`/products/${req.params.id}/edit`);
       }
       next(err);
     }
-  }
+  },
 );
 
 // DELETE PRODUCT
@@ -359,7 +359,7 @@ app.delete("/products/:id", isLoggedIn, isAdmin, async (req, res, next) => {
 
     const [[used]] = await pool.query(
       "SELECT ProductID FROM cart_items WHERE ProductID = ? LIMIT 1",
-      [id]
+      [id],
     );
 
     if (used) {
@@ -403,7 +403,7 @@ app.get("/admin/orders/:id", isLoggedIn, isAdmin, async (req, res, next) => {
 
     const [[order]] = await pool.query(
       "SELECT * FROM orders WHERE OrderID = ?",
-      [id]
+      [id],
     );
 
     const [items] = await pool.query(
@@ -418,7 +418,7 @@ app.get("/admin/orders/:id", isLoggedIn, isAdmin, async (req, res, next) => {
       JOIN product p ON oi.ProductID = p.ProductID
       WHERE oi.OrderID = ?
     `,
-      [id]
+      [id],
     );
 
     res.render("admins/order_show.ejs", { order, items });
@@ -447,7 +447,7 @@ app.put(
     } catch (err) {
       next(err);
     }
-  }
+  },
 );
 
 // ---------------- ADMIN – FORECAST DASHBOARD ----------------
@@ -489,8 +489,6 @@ app.get("/admin/forecast", isLoggedIn, isAdmin, async (req, res, next) => {
     next(err);
   }
 });
-
-
 
 //  ---------------- AUTH ROUTES ----------------
 //SIGNUP ROUTES
@@ -595,7 +593,7 @@ app.post(
   WHERE p.ProductID = ?
   GROUP BY p.ProductID
   `,
-        [productId]
+        [productId],
       );
 
       if (!product || product.available_stock <= 0) {
@@ -606,13 +604,13 @@ app.post(
       // 2️⃣ Get cart
       let [[cart]] = await pool.query(
         "SELECT CartID FROM cart WHERE UserID = ?",
-        [userId]
+        [userId],
       );
 
       if (!cart) {
         const [result] = await pool.query(
           "INSERT INTO cart (UserID) VALUES (?)",
-          [userId]
+          [userId],
         );
         cart = { CartID: result.insertId };
       }
@@ -620,7 +618,7 @@ app.post(
       // 3️⃣ Check existing cart item
       const [[item]] = await pool.query(
         "SELECT quantity FROM cart_items WHERE CartID = ? AND ProductID = ?",
-        [cart.CartID, productId]
+        [cart.CartID, productId],
       );
 
       if (item && item.quantity >= product.available_stock) {
@@ -631,13 +629,13 @@ app.post(
       if (item) {
         await pool.query(
           "UPDATE cart_items SET quantity = quantity + 1 WHERE CartID = ? AND ProductID = ?",
-          [cart.CartID, productId]
+          [cart.CartID, productId],
         );
       } else {
         await pool.query(
           `INSERT INTO cart_items (CartID, ProductID, quantity)
           VALUES (?, ?, 1)`,
-          [cart.CartID, productId]
+          [cart.CartID, productId],
         );
       }
 
@@ -646,7 +644,7 @@ app.post(
     } catch (err) {
       next(err);
     }
-  }
+  },
 );
 
 // ---------------- VIEW CART ----------------
@@ -676,7 +674,7 @@ app.get("/cart", isLoggedIn, isUser, async (req, res, next) => {
             JOIN product p ON ci.ProductID = p.ProductID
             WHERE ci.CartID = ?
         `,
-      [cart.CartID]
+      [cart.CartID],
     );
 
     const total = items.reduce((sum, i) => sum + Number(i.item_total), 0);
@@ -702,7 +700,7 @@ app.put("/cart/item/:id", isLoggedIn, isUser, async (req, res, next) => {
 
     await pool.query(
       "UPDATE cart_items SET quantity = ? WHERE CartItemID = ?",
-      [quantity, id]
+      [quantity, id],
     );
 
     req.flash("success", "Cart updated");
@@ -745,7 +743,7 @@ app.post("/orders/place", isLoggedIn, isUser, async (req, res, next) => {
     // 1️⃣ Get cart
     const [[cart]] = await connection.query(
       "SELECT CartID FROM cart WHERE UserID = ?",
-      [userId]
+      [userId],
     );
 
     if (!cart) {
@@ -764,7 +762,7 @@ app.post("/orders/place", isLoggedIn, isUser, async (req, res, next) => {
        FROM cart_items ci
        JOIN product p ON ci.ProductID = p.ProductID
        WHERE ci.CartID = ?`,
-      [cart.CartID]
+      [cart.CartID],
     );
 
     if (items.length === 0) {
@@ -802,7 +800,7 @@ app.post("/orders/place", isLoggedIn, isUser, async (req, res, next) => {
         city,
         state,
         pincode,
-      ]
+      ],
     );
 
     const orderId = orderResult.insertId;
@@ -813,12 +811,12 @@ app.post("/orders/place", isLoggedIn, isUser, async (req, res, next) => {
         `INSERT INTO order_items 
          (OrderID, ProductID, Quantity, Unit_Price)
          VALUES (?, ?, ?, ?)`,
-        [orderId, item.ProductID, item.Quantity, item.Unit_Price]
+        [orderId, item.ProductID, item.Quantity, item.Unit_Price],
       );
 
       await connection.query(
         "UPDATE product SET Quantity = Quantity - ? WHERE ProductID = ?",
-        [item.Quantity, item.ProductID]
+        [item.Quantity, item.ProductID],
       );
     }
 
@@ -849,7 +847,7 @@ app.get("/orders", isLoggedIn, isUser, async (req, res, next) => {
        FROM orders
        WHERE UserID = ?
        ORDER BY created_at DESC`,
-      [userId]
+      [userId],
     );
 
     res.render("orders/index.ejs", { orders });
@@ -867,7 +865,7 @@ app.get("/orders/:id", isLoggedIn, isUser, async (req, res, next) => {
     // 🔒 Ensure user owns this order
     const [[order]] = await pool.query(
       "SELECT * FROM orders WHERE OrderID = ? AND UserID = ?",
-      [id, userId]
+      [id, userId],
     );
 
     if (!order) {
@@ -887,7 +885,7 @@ app.get("/orders/:id", isLoggedIn, isUser, async (req, res, next) => {
       JOIN product p ON oi.ProductID = p.ProductID
       WHERE oi.OrderID = ?
       `,
-      [id]
+      [id],
     );
 
     res.render("orders/show.ejs", { order, items });
@@ -932,7 +930,7 @@ LEFT JOIN cart_items ci ON p.ProductID = ci.ProductID
 WHERE c.CategoryID = ?
 GROUP BY p.ProductID;
         `,
-      [id]
+      [id],
     );
 
     res.render("listings/listings.ejs", { products });
@@ -940,6 +938,65 @@ GROUP BY p.ProductID;
     next(err);
   }
 });
+
+// ---------------- PDF REPORT GENERATION (ADMIN ONLY) ----------------
+const generatePDF = require("./utils/reportGenerator");
+
+app.get("/admin/reports/sales/pdf", isLoggedIn, isAdmin, async (req, res) => {
+  const [orders] = await pool.query(`
+    SELECT OrderID, total_amount, Status, created_at
+    FROM orders
+    ORDER BY created_at DESC
+  `);
+
+  generatePDF(res, "Sales_Report", orders, [
+    "OrderID",
+    "total_amount",
+    "Status",
+    "created_at",
+  ]);
+});
+
+
+// Forecast Report PDF
+app.get("/admin/reports/forecast/pdf", isLoggedIn, isAdmin, async (req, res) => {
+  const [forecast] = await pool.query(`
+    SELECT 
+      p.Description,
+      ROUND(AVG(fs.PredictedDemand)) AS avgDemand,
+      MAX(fs.ModelUsed) AS ModelUsed
+    FROM forecast_summary fs
+    JOIN product p ON fs.ProductID = p.ProductID
+    GROUP BY fs.ProductID, p.Description
+  `);
+
+  generatePDF(res, "Demand_Forecast_Report", forecast, [
+    "Description",
+    "avgDemand",
+    "ModelUsed",
+  ]);
+});
+
+
+// User Order Report PDF
+app.get("/reports/orders/pdf", isLoggedIn, isUser, async (req, res) => {
+  const userId = req.user._id.toString();
+
+  const [orders] = await pool.query(`
+    SELECT OrderID, total_amount, Status, created_at
+    FROM orders
+    WHERE UserID = ?
+    ORDER BY created_at DESC
+  `, [userId]);
+
+  generatePDF(res, "My_Order_Report", orders, [
+    "OrderID",
+    "total_amount",
+    "Status",
+    "created_at",
+  ]);
+});
+
 
 app.all(/.*/, (req, res, next) => {
   next(new ExpressError(404, "Page Not Found"));

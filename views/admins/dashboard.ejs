@@ -18,6 +18,22 @@
         </a>
     </div>
 
+    <div class="text-center mt-3 d-flex justify-content-center gap-3 flex-wrap">
+
+    <a href="/admin/reports/sales/pdf" class="btn btn-outline-light animate-fade">
+        📄 Sales Report (PDF)
+    </a>
+
+    <a href="/admin/reports/forecast/pdf" class="btn btn-outline-light animate-fade">
+        📊 Forecast Report (PDF)
+    </a>
+
+    <a href="/admin/orders" class="btn btn-outline-light animate-fade">
+        📦 View Orders
+    </a>
+
+    </div>
+
 
     <div class="container mt-5">
         <h2 class="animate-fade" style="animation-delay: 0.3s; color: #ffffff; font-weight: 700; margin-bottom: 30px;">
@@ -131,4 +147,22 @@
         a[href="/admin/forecast"]:active {
             transform: translateY(-2px) scale(0.99);
         }
+
+        .btn-outline-light {
+    border-radius: 30px;
+    padding: 12px 28px;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(6px);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
     </style>

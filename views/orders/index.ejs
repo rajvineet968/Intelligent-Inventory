@@ -108,9 +108,35 @@
                 transform: none;
             }
         }
+        .btn-outline-light {
+    border-radius: 30px;
+    padding: 10px 22px;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(6px);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
     </style>
     <div class="container mt-4">
+        <div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>My Orders</h2>
+
+        <% if (orders.length > 0) { %>
+            <a href="/reports/orders/pdf" class="btn btn-outline-light">
+                📄 Download Orders (PDF)
+            </a>
+        <% } %>
+    </div>
 
         <% if (orders.length===0) { %>
             <p>You have no orders.</p>
